@@ -10,7 +10,7 @@ path = "src/lib.rs"
 
 [[bin]]
 path = "src/main.rs"
-name = "backend"
+name = "Authentication"
 
 [dependencies]
 actix-web = "4.5.1"
