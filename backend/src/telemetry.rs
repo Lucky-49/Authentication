@@ -27,5 +27,6 @@ pub fn get_subscriber(debug: bool) -> impl tracing::Subscriber + Send + Sync {
 }
 
 pub fn init_subscriber(subscriber: impl tracing::Subscriber + Send + Sync) {
-    tracing::subscriber::set_global_default(subscriber).expect("Filed to set subscriber (Не удалось установить подписчика)")
+    tracing::subscriber::set_global_default(subscriber)
+        .expect("Filed to set subscriber (Не удалось установить подписчика)")
 }

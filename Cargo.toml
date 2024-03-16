@@ -20,9 +20,17 @@ serde = "1.0.197"
 tokio = { version = "1.36.0", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = [
-"fmt",
-"std",
-"env-filter",
-"registry",
-"json",
-"tracing-log"] }
+    "fmt",
+    "std",
+    "env-filter",
+    "registry",
+    "json",
+    "tracing-log"] }
+sqlx = { version = "0.6.0", features = [
+    "runtime-tokio-rustls",
+    "postgres",
+    "uuid",
+    "chrono",
+    "migrate",
+] }
+deadpool-redis = "0.14.0"

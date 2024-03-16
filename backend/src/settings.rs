@@ -1,19 +1,66 @@
+use serde::Deserialize;
+use sqlx::{ConnectOptions};
+use sqlx::postgres::PgConnectOptions;
+use sqlx::postgres::PgSslMode::{Prefer, Require};
+
 /// Глобальные настройки для отображения всех предварительно сконфигурированных переменных
 #[derive(serde::Deserialize, Clone)]
 pub struct Settings {
-    pub application: ApplicationSetting,
+    pub application: ApplicationSettings,
     pub debug: bool,
+    pub database: DatabaseSettings,
+    pub redis: RedisSettings,
 }
 
 /// Конкретные настройки приложения для предоставления доступа к `порту`,
 /// `хосту`, `протоколу` и возможный URL-адрес приложения
 /// во время и после разработки
-#[derive(serde::Deserialize, Clone)]
-pub struct ApplicationSetting {
+#[derive(Deserialize, Clone)]
+pub struct ApplicationSettings {
     pub port: u16,
     pub host: String,
     pub base_url: String,
     pub protocol: String,
+}
+
+/// Настройки Redis для всего приложения
+#[derive(Deserialize, Clone, Debug)]
+pub struct RedisSettings {
+    pub uri: String,
+    pub pool_max_open: u64,
+    pub pool_max_idle: u64,
+    pub pool_timeout_seconds: u64,
+    pub pool_expire_seconds: u64,
+}
+
+/// Настройки базы данных для всего приложения
+#[derive(Deserialize, Clone)]
+pub struct DatabaseSettings {
+    username: String,
+    password: String,
+    port: u16,
+    host: String,
+    database_name: String,
+    require_ssl: bool,
+}
+
+impl DatabaseSettings {
+    pub fn connect_to_db(&self) -> PgConnectOptions {
+        let ssl_mode = if self.require_ssl {
+            Require
+        } else {
+            Prefer
+        };
+        let mut options = PgConnectOptions::new()
+            .host(&self.host)
+            .username(&self.username)
+            .password(&self.password)
+            .port(self.port)
+            .ssl_mode(ssl_mode)
+            .database(&self.database_name);
+        options.log_statements(tracing::log::LevelFilter::Trace);
+        options
+    }
 }
 
 /// Среда выполнения для приложения.
@@ -60,7 +107,9 @@ impl TryFrom<String> for Environment {
 /// за которым следует разделитель `__`, а затем переменная
 /// например `APP_APPLICATION__PORT=5001` для порта, который должен быть установлен как `5001`
 pub fn get_settings() -> Result<Settings, config::ConfigError> {
-    let base_path = std::env::current_dir().expect("Failed to determine the current directory (Не удалось определить текущий каталог)");
+    let base_path = std::env::current_dir().expect(
+        "Failed to determine the current directory (Не удалось определить текущий каталог)",
+    );
     let setting_directory = base_path.join("../backend/settings");
 
     // Определяем запущенную среду.
@@ -77,11 +126,14 @@ pub fn get_settings() -> Result<Settings, config::ConfigError> {
         ))
         // Добавить настройки из переменных окружения (с префиксом APP и '__' в качестве разделителя)
         // Например. `APP_APPLICATION__PORT=5001 установит `Settings.application.port`
-        .add_source(config::Environment::with_prefix("APP")
-            .prefix_separator("_")
-            .separator("__"),
+        .add_source(
+            config::Environment::with_prefix("APP")
+                .prefix_separator("_")
+                .separator("__"),
         )
         .build()?;
 
     settings.try_deserialize::<Settings>()
 }
+
+
