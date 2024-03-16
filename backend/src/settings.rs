@@ -61,7 +61,7 @@ impl TryFrom<String> for Environment {
 /// например `APP_APPLICATION__PORT=5001` для порта, который должен быть установлен как `5001`
 pub fn get_settings() -> Result<Settings, config::ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine the current directory (Не удалось определить текущий каталог)");
-    let setting_directory = base_path.join("settings");
+    let setting_directory = base_path.join("../backend/settings");
 
     // Определяем запущенную среду.
     // По умолчанию используется значение "разработка", если не указано другое.

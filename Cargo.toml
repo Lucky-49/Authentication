@@ -6,10 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-path = "src/lib.rs"
+path = "backend/src/lib.rs"
 
 [[bin]]
-path = "src/main.rs"
+path = "backend/src/main.rs"
 name = "Authentication"
 
 [dependencies]
