@@ -1,6 +1,6 @@
-mod health;//
-mod users;//
+mod health;
+mod users;
 
-pub use health::health_check;//
+pub use health::health_check;
 
-pub use users::auth_routes_config;//
+pub use users::auth_routes_config;
