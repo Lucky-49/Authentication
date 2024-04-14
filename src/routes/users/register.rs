@@ -1,3 +1,4 @@
+use actix_web::HttpResponse;
 use actix_web::web::{Data, Json};
 use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgPool, Row};
@@ -30,12 +31,12 @@ pub async fn register_user(//
     pool: Data<PgPool>,//
     new_user: Json<NewUser>,//
     redis_pool: Data<deadpool_redis::Pool>,//
-) -> actix_web::HttpResponse {//
+) -> HttpResponse {//
     let mut transaction = match pool.begin().await {//
         Ok(transaction) => transaction,//
         Err(e) => {//
             tracing::event!(target: "backend", tracing::Level::ERROR, "Unable to begin DB transaction: {:#?}", e);//
-            return actix_web::HttpResponse::InternalServerError().json(//
+            return HttpResponse::InternalServerError().json(//
                 crate::types::ErrorResponse {//
                     error: "Something unexpected happened. Kindly try again.".to_string(),//
                 },//
@@ -73,7 +74,7 @@ pub async fn register_user(//
                     error: "Error inserting user into the database".to_string(),//
                 }//
             };//
-            return actix_web::HttpResponse::InternalServerError().json(error_message);//
+            return HttpResponse::InternalServerError().json(error_message);//
         }//
     };//
 
@@ -83,7 +84,7 @@ pub async fn register_user(//
         .await//
         .map_err(|e| {//
             tracing::event!(target: "backend", tracing::Level::ERROR, "{}", e);//
-            actix_web::HttpResponse::InternalServerError().json(crate::types::ErrorResponse {//
+            HttpResponse::InternalServerError().json(crate::types::ErrorResponse {//
                 error: "We cannot activate your account at the moment".to_string(),//
             })//
         })//
@@ -102,11 +103,11 @@ pub async fn register_user(//
         .unwrap();//
 
     if transaction.commit().await.is_err() {//
-        return actix_web::HttpResponse::InternalServerError().finish();//
+        return HttpResponse::InternalServerError().finish();//
     }//
 
     tracing::event!(target: "backend", tracing::Level::INFO, "User created successfully");//
-    actix_web::HttpResponse::Ok().json(crate::types::SuccessResponse {//
+    HttpResponse::Ok().json(crate::types::SuccessResponse {//
         message: "Your account was created successfully. Check your email address to activate your \
         account as we just sent you an activation link. Ensure you activate your account before the \
         link expires".to_string(),//
