@@ -1,5 +1,6 @@
 use lettre::AsyncTransport;
 use crate::settings::get_settings;
+use crate::utils::issue_confirmation_token_pasetors;
 
 #[tracing::instrument(
 name = "Generic e-mail sending function.",

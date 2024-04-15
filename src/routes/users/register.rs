@@ -2,6 +2,8 @@ use actix_web::HttpResponse;
 use actix_web::web::{Data, Json};
 use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgPool, Row};
+use crate::types::ErrorResponse;
+use crate::utils::{hash, send_multipart_email};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NewUser {
@@ -37,14 +39,14 @@ pub async fn register_user(
         Err(e) => {
             tracing::event!(target: "backend", tracing::Level::ERROR, "Unable to begin DB transaction: {:#?}", e);
             return HttpResponse::InternalServerError().json(
-                crate::types::ErrorResponse {
+                ErrorResponse {
                     error: "Something unexpected happened. Kindly try again.".to_string(),
                 },
             );
         }
     };
 
-    let hashed_password = crate::utils::hash(new_user.0.password.as_bytes()).await;
+    let hashed_password = hash(new_user.0.password.as_bytes()).await;
 
     let create_new_user = CreateNewUser {
         password: hashed_password,
@@ -65,7 +67,7 @@ pub async fn register_user(
                 .parse::<i32>()
                 .unwrap()
                 == 23505
-            {//
+            {
                 ErrorResponse {
                     error: "A user with that email address already exists".to_string(),
                 }
@@ -90,7 +92,7 @@ pub async fn register_user(
         })
         .expect("Redis connection cannot be gotten.");
 
-    crate::utils::send_multipart_email(
+    send_multipart_email(
         "RustAuth - Let's get you verified".to_string(),
         user_id,
         create_new_user.email,

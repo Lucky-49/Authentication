@@ -8,6 +8,7 @@ use pasetors::token::UntrustedToken;
 use pasetors::version4::V4;
 use serde_json::json;
 use crate::settings::get_settings;
+use crate::types::ConfirmationToken;
 
 /// Сохраняем префикс сеансового ключа как const, чтобы в нем не было опечаток везде, где он используется.
 const SESSION_KEY_PREFIX: &str = "valid_session_key_for_{}";
@@ -161,7 +162,7 @@ pub async fn verify_confirmation_token_pasetor(
                     .del(redis_key.clone())
                     .await
                     .map_err(|e| format!("{}", e))?;
-                Ok(crate::types::ConfirmationToken { user_id: user_uuid })
+                Ok(ConfirmationToken { user_id: user_uuid })
             }
             Err(e) => Err(format!("{}", e)),
         },
