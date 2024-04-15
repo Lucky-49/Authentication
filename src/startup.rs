@@ -22,7 +22,7 @@ impl Application {
             get_connection_pool(&settings.database).await
         };
 
-        sqlx::migrate!()
+        sqlx::migrate!("../backend/migrations")
             .run(&connection_pool)
             .await
             .expect("Failed to migrate the database (Не удалось перенести базу данных).");
@@ -70,7 +70,8 @@ async fn run(
     let redis_pool_data = Data::new(redis_pool);
 
     let server = HttpServer::new(move || {
-        App::new().service(health_check)
+        App::new()
+            .service(health_check)
             .configure(auth_routes_config)  //Маршруты аутентификации
             //Добавляем, в состояние приложения, пул баз данных и пул Redis
             .app_data(pool.clone())
