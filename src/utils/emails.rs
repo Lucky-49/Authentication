@@ -1,3 +1,4 @@
+use chrono::Duration;
 use lettre::AsyncTransport;
 use crate::settings::get_settings;
 use crate::utils::issue_confirmation_token_pasetors;
@@ -147,7 +148,8 @@ pub async fn send_multipart_email(
     };
 
     let current_date_time = chrono::Local::now();
-    let dt = current_date_time + chrono::Duration::try_minutes(settings.secret.token_expiration);
+    let dt = current_date_time + Duration::try_minutes(settings.secret.token_expiration)
+        .map_or(Duration::zero(), |duration|duration);
 
     let template = crate::ENV.get_template(template_name).unwrap();
     let ctx = minijinja::context! {
