@@ -8,7 +8,7 @@ use tracing::instrument;
 use uuid::Uuid;
 use crate::settings::get_settings;
 use crate::types::{ErrorResponse, SuccessResponse};
-use crate::utils::verify_password;
+use crate::utils::{verify_confirmation_token_pasetor, verify_password};
 
 #[derive(Deserialize)]
 pub struct Parameters {
@@ -94,7 +94,7 @@ pub async fn confirm (
 #[instrument(name = "Mark a user active", skip(pool),
 fields(new_user_user_id = %user_id))]
 pub async fn activate_new_user(
-    pool: PgPool,
+    pool: &PgPool,
     user_id: Uuid,
 ) -> Result<(), Error> {
     match sqlx::query("UPDATE users SET is_active=true WHERE id = $1")
