@@ -1,7 +1,10 @@
 use std::io::Error;
 use std::net::TcpListener;
 use std::time::Duration;
+use actix_session::SessionMiddleware;
+use actix_session::storage::CookieSessionStore;
 use actix_web::{App, HttpServer};
+use actix_web::cookie::{Key, SameSite};
 use actix_web::dev::Server;
 use actix_web::web::Data;
 use sqlx::PgPool;
@@ -69,8 +72,26 @@ async fn run(
         .expect("Cannot create deadpool redis (Не удается создать deadpool_redis.).");
     let redis_pool_data = Data::new(redis_pool);
 
+    //Создание сессии
+    let secret_key = Key::from(settings.secret.hmac_secret.as_bytes());
+
     let server = HttpServer::new(move || {
         App::new()
+            .wrap(if settings.debug {
+                SessionMiddleware::builder(
+                    CookieSessionStore::default(),
+                    secret_key.clone(),
+                )
+                    .cookie_http_only(true)
+                    .cookie_same_site(SameSite::None)
+                    .cookie_secure(true)
+                    .build()
+            } else {
+                SessionMiddleware::new(
+                    CookieSessionStore::default(),
+                    secret_key.clone(),
+                )
+            })
             .service(health_check)
             .configure(auth_routes_config)  //Маршруты аутентификации
             //Добавляем, в состояние приложения, пул баз данных и пул Redis

@@ -1,9 +1,10 @@
 use chrono::Duration;
 use lettre::AsyncTransport;
+use tracing::instrument;
 use crate::settings::get_settings;
 use crate::utils::issue_confirmation_token_pasetors;
 
-#[tracing::instrument(
+#[instrument(
 name = "Generic e-mail sending function.",
 skip(
 recipient_email,
@@ -91,7 +92,7 @@ pub async fn send_email(
     }
 }
 
-#[tracing::instrument(
+#[instrument(
 name = "Generic multipart e-mail sending function.",
 skip(redis_connection),
 fields(
