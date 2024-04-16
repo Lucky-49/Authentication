@@ -7,7 +7,7 @@ application:
 database:
   username: "postgres"
   password: "1"
-  port: 4952
+  port: 5432
   host: "localhost"
   database_name: "auth_db"
   require_ssl: false

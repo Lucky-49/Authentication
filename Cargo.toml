@@ -26,14 +26,14 @@ tracing-subscriber = { version = "0.3.17", features = [
     "registry",
     "json",
     "tracing-log"] }
-sqlx = { version = "0.6", features = [
+sqlx = { version = "0.6.0", features = [
     "runtime-actix-rustls",
     "postgres",
     "uuid",
     "chrono",
     "migrate",
 ] }
-deadpool-redis = "0.11"
+deadpool-redis = "0.11.0"
 pasetors = "0.6.8"
 once_cell = "1.19.0"
 hex = "0.4"
