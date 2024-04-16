@@ -1,7 +1,10 @@
 application:
+  port: 5000
   protocol: https
   host: 0.0.0.0
   base_usr: ""
+
+#Необходимо довать настройки соединения с DB и Redis
 
 debug: false
 

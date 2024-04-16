@@ -138,7 +138,6 @@ pub fn get_settings() -> Result<Settings, config::ConfigError> {
     println!("получаем настройки из файла {}", environment_filename);
 
     let settings = Config::builder()
-        .add_source(File::from(setting_directory.join("base.yaml")))
         .add_source(File::from(setting_directory.join(environment_filename),))
         // Добавить настройки из переменных окружения (с префиксом APP и '__' в качестве разделителя)
         // Например. `APP_APPLICATION__PORT=5001 установит `Settings.application.port`
