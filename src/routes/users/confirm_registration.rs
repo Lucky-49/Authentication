@@ -8,7 +8,7 @@ use tracing::instrument;
 use uuid::Uuid;
 use crate::settings::get_settings;
 use crate::types::{ErrorResponse, SuccessResponse};
-use crate::utils::{verify_confirmation_token_pasetor, verify_password};
+use crate::utils::verify_confirmation_token_pasetor;
 
 #[derive(Deserialize)]
 pub struct Parameters {
