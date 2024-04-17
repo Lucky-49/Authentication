@@ -94,7 +94,7 @@ async fn run(listener: TcpListener, db_pool: PgPool, settings: Settings) -> Resu
                       .max_age(3600),
             )
             .service(health_check)
-            .configure(auth_routes_config) //Маршруты аутентификации
+            .configure(auth_routes_config) //Маршруты  аутентификации
             //Добавляем, в состояние приложения, пул баз данных и пул Redis
             .app_data(pool.clone())
             .app_data(redis_pool_data.clone())
