@@ -1,5 +1,5 @@
-use tracing_subscriber::{EnvFilter, fmt, Registry};
 use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::{fmt, EnvFilter, Registry};
 
 pub fn get_subscriber(debug: bool) -> impl tracing::Subscriber + Send + Sync {
     let env_filter = if debug {
@@ -7,13 +7,11 @@ pub fn get_subscriber(debug: bool) -> impl tracing::Subscriber + Send + Sync {
     } else {
         "info".to_string()
     };
-    let env_filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new(env_filter));
+    let env_filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(env_filter));
 
     let stdout_log = fmt::layer().pretty();
-    let subscriber = Registry::default()
-        .with(env_filter)
-        .with(stdout_log);
+    let subscriber = Registry::default().with(env_filter).with(stdout_log);
 
     let json_log = if !debug {
         let json_log = fmt::layer().json();

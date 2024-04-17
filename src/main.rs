@@ -1,8 +1,8 @@
-use std::io::Result;
-use dotenv::dotenv;
 use backend::settings::get_settings;
 use backend::startup::Application;
 use backend::telemetry::{get_subscriber, init_subscriber};
+use dotenv::dotenv;
+use std::io::Result;
 
 #[tokio::main]
 async fn main() -> Result<()> {

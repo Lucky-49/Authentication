@@ -1,8 +1,8 @@
+use crate::settings::get_settings;
+use crate::utils::issue_confirmation_token_pasetors;
 use chrono::Duration;
 use lettre::AsyncTransport;
 use tracing::instrument;
-use crate::settings::get_settings;
-use crate::utils::issue_confirmation_token_pasetors;
 
 #[instrument(
 name = "Generic e-mail sending function.",
@@ -41,16 +41,16 @@ pub async fn send_email(
                     settings.email.host_user.clone()
                 }
             )
-                .parse()
-                .unwrap(),
+            .parse()
+            .unwrap(),
         )
         .to(format!(
             "{} <{}>",
             [recipient_first_name, recipient_last_name].join(" "),
             recipient_email
         )
-            .parse()
-            .unwrap())
+        .parse()
+        .unwrap())
         .subject(subject)
         .multipart(
             lettre::message::MultiPart::alternative()
@@ -149,8 +149,9 @@ pub async fn send_multipart_email(
     };
 
     let current_date_time = chrono::Local::now();
-    let dt = current_date_time + Duration::try_minutes(settings.secret.token_expiration)
-        .map_or(Duration::zero(), |duration|duration);
+    let dt = current_date_time
+        + Duration::try_minutes(settings.secret.token_expiration)
+            .map_or(Duration::zero(), |duration| duration);
 
     let template = crate::ENV.get_template(template_name).unwrap();
     let ctx = minijinja::context! {

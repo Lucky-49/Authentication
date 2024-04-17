@@ -1,9 +1,9 @@
-use std::env::{current_dir, var};
 use config::{Config, File};
 use serde::Deserialize;
-use sqlx::ConnectOptions;
 use sqlx::postgres::PgConnectOptions;
 use sqlx::postgres::PgSslMode::{Prefer, Require};
+use sqlx::ConnectOptions;
+use std::env::{current_dir, var};
 
 /// Глобальные настройки для отображения всех предварительно сконфигурированных переменных
 #[derive(Deserialize, Clone)]
@@ -138,10 +138,11 @@ pub fn get_settings() -> Result<Settings, config::ConfigError> {
     println!("получаем настройки из файла {}", environment_filename);
 
     let settings = Config::builder()
-        .add_source(File::from(setting_directory.join(environment_filename),))
+        .add_source(File::from(setting_directory.join(environment_filename)))
         // Добавить настройки из переменных окружения (с префиксом APP и '__' в качестве разделителя)
         // Например. `APP_APPLICATION__PORT=5001 установит `Settings.application.port`
-        .add_source(config::Environment::with_prefix("APP")
+        .add_source(
+            config::Environment::with_prefix("APP")
                 .prefix_separator("_")
                 .separator("__"),
         )

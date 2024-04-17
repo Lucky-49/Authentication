@@ -1,9 +1,9 @@
-use actix_web::HttpResponse;
-use actix_web::web::{Data, Json};
-use serde::{Deserialize, Serialize};
-use sqlx::{postgres::PgPool, Row};
 use crate::types::ErrorResponse;
 use crate::utils::{hash, send_multipart_email};
+use actix_web::web::{Data, Json};
+use actix_web::HttpResponse;
+use serde::{Deserialize, Serialize};
+use sqlx::{postgres::PgPool, Row};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NewUser {
@@ -38,11 +38,9 @@ pub async fn register_user(
         Ok(transaction) => transaction,
         Err(e) => {
             tracing::event!(target: "backend", tracing::Level::ERROR, "Unable to begin DB transaction: {:#?}", e);
-            return HttpResponse::InternalServerError().json(
-                ErrorResponse {
-                    error: "Something unexpected happened. Kindly try again.".to_string(),
-                },
-            );
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                error: "Something unexpected happened. Kindly try again.".to_string(),
+            });
         }
     };
 
@@ -101,8 +99,8 @@ pub async fn register_user(
         "verification_email.html",
         &mut redis_con,
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 
     if transaction.commit().await.is_err() {
         return HttpResponse::InternalServerError().finish();
@@ -131,15 +129,13 @@ async fn insert_created_user_into_db(
         "INSERT INTO users (email, password, first_name, last_name) \
         VALUES ($1, $2, $3, $4) RETURNING id",
     )
-        .bind(&new_user.email)
-        .bind(&new_user.password)
-        .bind(&new_user.first_name)
-        .bind(&new_user.last_name)
-        .map(|row: sqlx::postgres::PgRow| -> uuid::Uuid {
-            row.get("id")
-        })
-        .fetch_one(&mut *transaction)
-        .await
+    .bind(&new_user.email)
+    .bind(&new_user.password)
+    .bind(&new_user.first_name)
+    .bind(&new_user.last_name)
+    .map(|row: sqlx::postgres::PgRow| -> uuid::Uuid { row.get("id") })
+    .fetch_one(&mut *transaction)
+    .await
     {
         Ok(id) => id,
         Err(e) => {
@@ -155,10 +151,10 @@ async fn insert_created_user_into_db(
         DO NOTHING \
         RETURN user_id",
     )
-        .bind(user_id)
-        .map(|row: sqlx::postgres::PgRow| -> uuid::Uuid { row.get("user_id") })
-        .fetch_one(&mut *transaction)
-        .await
+    .bind(user_id)
+    .map(|row: sqlx::postgres::PgRow| -> uuid::Uuid { row.get("user_id") })
+    .fetch_one(&mut *transaction)
+    .await
     {
         Ok(id) => {
             tracing::event!(target: "sqlx", tracing::Level::INFO, "User profile created successfully {}.", id);

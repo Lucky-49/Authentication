@@ -1,16 +1,16 @@
-use std::io::Error;
-use std::net::TcpListener;
-use std::time::Duration;
-use actix_session::SessionMiddleware;
+use crate::routes::{auth_routes_config, health_check};
+use crate::settings::{DatabaseSettings, Settings};
 use actix_session::storage::CookieSessionStore;
-use actix_web::{App, HttpServer};
+use actix_session::SessionMiddleware;
 use actix_web::cookie::{Key, SameSite};
 use actix_web::dev::Server;
 use actix_web::web::Data;
-use sqlx::PgPool;
+use actix_web::{App, HttpServer};
 use sqlx::postgres::PgPoolOptions;
-use crate::routes::{auth_routes_config, health_check};
-use crate::settings::{DatabaseSettings, Settings};
+use sqlx::PgPool;
+use std::io::Error;
+use std::net::TcpListener;
+use std::time::Duration;
 
 pub struct Application {
     port: u16,
@@ -57,11 +57,7 @@ pub async fn get_connection_pool(settings: &DatabaseSettings) -> PgPool {
         .connect_lazy_with(settings.connect_to_db())
 }
 
-async fn run(
-    listener: TcpListener,
-    db_pool: PgPool,
-    settings: Settings,
-) -> Result<Server, Error> {
+async fn run(listener: TcpListener, db_pool: PgPool, settings: Settings) -> Result<Server, Error> {
     // Состояние приложения пула подключений к базе данных
     let pool = Data::new(db_pool);
 
@@ -78,28 +74,22 @@ async fn run(
     let server = HttpServer::new(move || {
         App::new()
             .wrap(if settings.debug {
-                SessionMiddleware::builder(
-                    CookieSessionStore::default(),
-                    secret_key.clone(),
-                )
+                SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
                     .cookie_http_only(true)
                     .cookie_same_site(SameSite::None)
                     .cookie_secure(true)
                     .build()
             } else {
-                SessionMiddleware::new(
-                    CookieSessionStore::default(),
-                    secret_key.clone(),
-                )
+                SessionMiddleware::new(CookieSessionStore::default(), secret_key.clone())
             })
             .service(health_check)
-            .configure(auth_routes_config)  //Маршруты аутентификации
+            .configure(auth_routes_config) //Маршруты аутентификации
             //Добавляем, в состояние приложения, пул баз данных и пул Redis
             .app_data(pool.clone())
             .app_data(redis_pool_data.clone())
     })
-        .listen(listener)?
-        .run();
+    .listen(listener)?
+    .run();
 
     Ok(server)
 }

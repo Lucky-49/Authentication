@@ -1,3 +1,5 @@
+use crate::settings::get_settings;
+use crate::types::ConfirmationToken;
 use argon2::password_hash::rand_core::{OsRng, RngCore};
 use chrono::{Duration, Local};
 use deadpool_redis::redis::AsyncCommands;
@@ -7,8 +9,6 @@ use pasetors::local;
 use pasetors::token::UntrustedToken;
 use pasetors::version4::V4;
 use serde_json::json;
-use crate::settings::get_settings;
-use crate::types::ConfirmationToken;
 
 /// Сохраняем префикс сеансового ключа как const, чтобы в нем не было опечаток везде, где он используется.
 const SESSION_KEY_PREFIX: &str = "valid_session_key_for_{}";
@@ -43,8 +43,9 @@ pub async fn issue_confirmation_token_pasetors(
     };
 
     redis_connection
-        .set(redis_key.clone(), // Подтверждаем, что ключ существует, чтобы указать, что сеанс "живой".
-             String::new(),
+        .set(
+            redis_key.clone(), // Подтверждаем, что ключ существует, чтобы указать, что сеанс "живой".
+            String::new(),
         )
         .await
         .map_err(|e| {
@@ -58,7 +59,9 @@ pub async fn issue_confirmation_token_pasetors(
         if is_for_password_change.is_some() {
             current_date_time + Duration::try_hours(1).map_or(Duration::zero(), |duration| duration)
         } else {
-            current_date_time + Duration::try_minutes(settings.secret.token_expiration).map_or(Duration::zero(), |duration| duration)
+            current_date_time
+                + Duration::try_minutes(settings.secret.token_expiration)
+                    .map_or(Duration::zero(), |duration| duration)
         }
     };
 
@@ -66,14 +69,15 @@ pub async fn issue_confirmation_token_pasetors(
         if is_for_password_change.is_some() {
             Duration::try_hours(1).map_or(Duration::zero(), |duration| duration)
         } else {
-            Duration::try_minutes(settings.secret.token_expiration).map_or(Duration::zero(), |duration| duration)//
+            Duration::try_minutes(settings.secret.token_expiration)
+                .map_or(Duration::zero(), |duration| duration) //
         }
     };
 
     redis_connection
         .expire(
             redis_key.clone(),
-            time_to_live.num_seconds().try_into().unwrap()
+            time_to_live.num_seconds().try_into().unwrap(),
         )
         .await
         .map_err(|e| {
@@ -83,9 +87,7 @@ pub async fn issue_confirmation_token_pasetors(
 
     let mut claims = Claims::new().unwrap();
     claims.expiration(&dt.to_rfc3339()).unwrap();
-    claims
-        .add_additional("user_id", json!(user_id))
-        .unwrap();
+    claims.add_additional("user_id", json!(user_id)).unwrap();
     claims
         .add_additional("session_key", json!(session_key))
         .unwrap();
@@ -97,7 +99,7 @@ pub async fn issue_confirmation_token_pasetors(
         None,
         Some(settings.secret.hmac_secret.as_bytes()),
     )
-        .unwrap())
+    .unwrap())
 }
 
 /// Проверяет и уничтожает токен. Токен уничтожается немедленно
@@ -124,7 +126,7 @@ pub async fn verify_confirmation_token_pasetor(
         None,
         Some(settings.secret.hmac_secret.as_bytes()),
     )
-        .map_err(|e| format!("Pasetor: {}", e))?;
+    .map_err(|e| format!("Pasetor: {}", e))?;
     let claims = trusted_token.payload_claims().unwrap();
 
     let uid = serde_json::to_value(claims.get_claim("user_id").unwrap()).unwrap();
