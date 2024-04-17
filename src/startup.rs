@@ -11,6 +11,8 @@ use sqlx::PgPool;
 use std::io::Error;
 use std::net::TcpListener;
 use std::time::Duration;
+use actix_cors::Cors;
+use actix_web::http::header::{ACCEPT, AUTHORIZATION, CONTENT_DISPOSITION, CONTENT_TYPE};
 
 pub struct Application {
     port: u16,
@@ -82,6 +84,15 @@ async fn run(listener: TcpListener, db_pool: PgPool, settings: Settings) -> Resu
             } else {
                 SessionMiddleware::new(CookieSessionStore::default(), secret_key.clone())
             })
+            .wrap(Cors::default()
+                      .allowed_origin(&settings.frontend_url)
+                      .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE"])
+                      .allowed_headers(vec![AUTHORIZATION, ACCEPT])
+                      .allowed_header(CONTENT_TYPE)
+                      .expose_headers(&CONTENT_DISPOSITION)
+                      .supports_credentials()
+                      .max_age(3600),
+            )
             .service(health_check)
             .configure(auth_routes_config) //Маршруты аутентификации
             //Добавляем, в состояние приложения, пул баз данных и пул Redis

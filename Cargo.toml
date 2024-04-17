@@ -44,3 +44,4 @@ serde_json = { version = "1.0.0", features = ["raw_value"]}
 minijinja = { version = "0.32.0", features = ["source"] }
 lettre = { version = "0.10.0", features = ["builder", "tokio1-native-tls"] }
 actix-session = { version = "0.7.0", features = ["cookie-session"] }
+actix-cors = "0.6.0"
